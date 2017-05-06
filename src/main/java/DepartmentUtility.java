@@ -80,4 +80,16 @@ class DepartmentUtility {
         logger.debug("Deleted department with id = " + id);
         return true;
     }
+
+    boolean deleteDepartmentByNaturalKey(NaturalKey key) throws SQLException {
+        db.connection.setAutoCommit(false);
+        String deleteQuery = "DELETE FROM dbtoxml.department WHERE (DepCode, DepJob) IN ((?,?))";
+        PreparedStatement preparedStatement = db.connection.prepareStatement(deleteQuery);
+        preparedStatement.setString(1, key.getDepCode());
+        preparedStatement.setString(2, key.getDepJob());
+        preparedStatement.executeUpdate();
+        db.connection.commit();
+        logger.debug("Deleted department with natural key = " + key.getDepCode() + " " + key.getDepJob());
+        return true;
+    }
 }
