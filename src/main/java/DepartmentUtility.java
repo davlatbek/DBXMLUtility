@@ -13,7 +13,7 @@ import java.util.List;
  */
 class DepartmentUtility {
     private Logger logger = MyLogger.getInstance();
-    private DBConnection db = null;
+    protected DBConnection db = null;
 
     DepartmentUtility() throws SQLException, IOException, ClassNotFoundException {
         db = DBConnection.getInstance();
@@ -39,6 +39,21 @@ class DepartmentUtility {
         statement.close();
         return departments;
     }
+
+    void addDepartment(Department newDep) throws SQLException {
+        db.connection.setAutoCommit(false);
+        String addQuery = "insert into dbtoxml.department " +
+                "(DepCode, DepJob, Description) value (?, ?, ?)";
+        PreparedStatement preparedStatement = db.connection.prepareStatement(addQuery);
+        preparedStatement.setString(1, newDep.getDepCode());
+        preparedStatement.setString(2, newDep.getDepJob());
+        preparedStatement.setString(3, newDep.getDescription());
+        preparedStatement.executeUpdate();
+        //transaction end
+        db.connection.commit();
+        logger.debug("Added new department with natural key "  + newDep.getDepCode() + " " + newDep.getDepJob());
+    }
+
 
     void addDepartment(String DepCode, String DepJob, String Description) throws SQLException, IOException, ClassNotFoundException {
         //transaction start
