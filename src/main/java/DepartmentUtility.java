@@ -70,18 +70,19 @@ class DepartmentUtility {
         logger.debug("Added new department with id");
     }
 
-    boolean updateDepartment(int id, String DepCode, String DepJob, String Description) throws SQLException {
+    boolean updateDepartment(String DepCode, String DepJob, String Description) throws SQLException {
         db.connection.setAutoCommit(false);
         String updateQuery = "UPDATE dbtoxml.department SET DepCode = ?,"
-                + " DepJob = ?, Description = ? WHERE ID = ?";
+                + " DepJob = ?, Description = ? WHERE (DepCode, DepJob) IN ((?, ?))";
         PreparedStatement preparedStatement = db.connection.prepareStatement(updateQuery);
         preparedStatement.setString(1, DepCode);
         preparedStatement.setString(2, DepJob);
         preparedStatement.setString(3, Description);
-        preparedStatement.setInt(4, id);
+        preparedStatement.setString(4, DepCode);
+        preparedStatement.setString(5, DepJob);
         preparedStatement.executeUpdate();
         db.connection.commit();
-        logger.debug("Updated department with id = " + id);
+        logger.debug("Updated department with keys " + DepCode + " " + DepJob);
         return true;
     }
 
