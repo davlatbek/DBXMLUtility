@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<departments>
+<department>
+<DepCode>code1</DepCode>
+<DepJob>job1</DepJob>
+<Description>desc1</Description></department>
+<department>
+<DepCode>code2</DepCode>
+<DepJob>job2</DepJob>
+<Description>desc2</Description></department>
+<department>
+<DepCode>code3</DepCode>
+<DepJob>job3</DepJob>
+<Description>desc3</Description></department>
+<department>
+<DepCode>code4</DepCode>
+<DepJob>job4</DepJob>
+<Description>desc4</Description></department>
+<department>
+<DepCode>code5</DepCode>
+<DepJob>job5</DepJob>
+<Description>desc5</Description></department>
+<department>
+<DepCode>code6</DepCode>
+<DepJob>job6</DepJob>
+<Description>desc6</Description></department>
+</departments>
