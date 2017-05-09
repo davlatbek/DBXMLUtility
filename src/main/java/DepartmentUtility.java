@@ -18,8 +18,6 @@ class DepartmentUtility implements Callable {
 
     DepartmentUtility(DBConnection dbConnection) throws SQLException, IOException, ClassNotFoundException {
         db = dbConnection;
-//        db = DBConnection.getInstance();
-//        db.setConnection();
     }
 
     public List<Department> getAllDepartments() throws SQLException, IOException, ClassNotFoundException {
@@ -115,6 +113,7 @@ class DepartmentUtility implements Callable {
         for (NaturalKey naturalKey : keysForDeletion){
             keysToDeleteParams.append("(?, ?),");
         }
+
         String deleteQuery = "DELETE FROM dbtoxml.department WHERE (DepCode, DepJob) IN (" + keysToDeleteParams.deleteCharAt(keysToDeleteParams.length() - 1) + ")";
         PreparedStatement preparedStatement = db.connection.prepareStatement(deleteQuery);
 
@@ -123,13 +122,12 @@ class DepartmentUtility implements Callable {
             preparedStatement.setString(index++, key.getDepCode());
             preparedStatement.setString(index++, key.getDepJob());
         }
-//        logger.debug("Deleted department with natural key = " + key.getDepCode() + " " + key.getDepJob());
         return preparedStatement;
     }
 
-    public PreparedStatement addDepartmentNew(HashSet<Department> newDep) throws SQLException {
+    public PreparedStatement addDepartmentList(List<Department> depList) throws SQLException {
         StringBuilder keysToAddParam = new StringBuilder();
-        for (int i = 0; i < newDep.size(); i++){
+        for (int i = 0; i < depList.size(); i++){
             keysToAddParam.append("(?,?,?),");
         }
 
@@ -138,12 +136,11 @@ class DepartmentUtility implements Callable {
         PreparedStatement preparedStatement = db.connection.prepareStatement(addQuery);
 
         int index = 1;
-        for (Department dep : newDep){
+        for (Department dep : depList){
             preparedStatement.setString(index++, dep.getDepCode());
             preparedStatement.setString(index++, dep.getDepJob());
             preparedStatement.setString(index++, dep.getDescription());
         }
-//        logger.debug("Added new departments from xml");
         return preparedStatement;
     }
 }
