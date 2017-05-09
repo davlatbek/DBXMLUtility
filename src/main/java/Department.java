@@ -71,17 +71,4 @@ public class Department {
         result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
         return result;
     }
-
-/*    public boolean equals(Object object){
-        if (object == null)
-            return false;
-        if (!(object instanceof Department))
-            return false;
-        Department department = (Department) object;
-        return this.DepCode.equals(department.DepCode) & this.DepJob.equals(department.DepJob);
-    }
-
-    public int hashcode(){
-        return this.DepCode.hashCode() * DepJob.hashCode();
-    }*/
 }
