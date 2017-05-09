@@ -143,4 +143,20 @@ class DepartmentUtility implements Callable {
         }
         return preparedStatement;
     }
+
+    public PreparedStatement updateDepartment(List<Department> departmentList) throws SQLException {
+        String updateQuery = "UPDATE dbtoxml.department SET DepCode = ?,"
+                + " DepJob = ?, Description = ? WHERE (DepCode, DepJob) IN ((?,?))";
+        PreparedStatement preparedStatement = db.connection.prepareStatement(updateQuery);
+
+        for (Department dep: departmentList){
+            preparedStatement.setString(1, dep.getDepCode());
+            preparedStatement.setString(2, dep.getDepJob());
+            preparedStatement.setString(3, dep.getDescription());
+            preparedStatement.setString(4, dep.getDepCode());
+            preparedStatement.setString(5, dep.getDepJob());
+            preparedStatement.addBatch();
+        }
+        return preparedStatement;
+    }
 }
