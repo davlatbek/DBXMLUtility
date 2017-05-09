@@ -11,6 +11,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.TransformerException;
 import java.io.*;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -18,10 +19,17 @@ import java.util.*;
  * Created by davlet on 5/4/17.
  */
 public class Utility {
+    private DBConnection db = null;
+    private Logger logger = Logger.getLogger("FileLogger");
+
+    public Utility() throws SQLException, IOException, ClassNotFoundException {
+        db = DBConnection.getInstance();
+        db.setConnection();
+    }
+
     public static void main(String[] args) throws Exception {
         MyLogger.resetLoggerConfiguration();
         Logger logger = Logger.getLogger("FileLogger");
-
         Utility utilityObj = new Utility();
         String command = args[0];
         String filename = args[1];
@@ -29,11 +37,9 @@ public class Utility {
         switch (command) {
             case "extract":
                 utilityObj.extract_to_xml(filename);
-                logger.debug("Extracted database table 'department' successfully to xml file " + filename);
                 break;
             case "sync":
                 utilityObj.synchronize_xml_with_dbtable(filename);
-                logger.debug("Synchronized xml file '" + filename + "' with database table 'department' successfully");
                 break;
             default:
                 logger.error("Command is not valid. Enter extract or sync and specify filename! Example: <extract dbxml>");
@@ -43,9 +49,7 @@ public class Utility {
     }
 
     private void extract_to_xml(String toFile) throws IOException, XMLStreamException, SQLException, ClassNotFoundException, TransformerException {
-        Logger logger = Logger.getLogger("FileLogger");
-
-        DepartmentUtility departmentUtility = new DepartmentUtility();
+        DepartmentUtility departmentUtility = new DepartmentUtility(this.db);
         List<Department> departmentList = departmentUtility.getAllDepartments();
         departmentUtility.db.connection.close();
 
@@ -83,11 +87,11 @@ public class Utility {
         out.writeEndDocument();
         out.close();
         logger.debug("Finished writing database table to xml file");
+        logger.debug("Extracted database table 'department' to XML file '" + toFile + "' successfully");
     }
 
-    protected void synchronize_xml_with_dbtable(String xmlFile) throws Exception {
+    private void synchronize_xml_with_dbtable(String xmlFile) throws Exception {
         File inputXML = new File(xmlFile);
-
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document document = builder.parse(inputXML);
@@ -95,7 +99,7 @@ public class Utility {
 
         //get natural keys from db
         HashSet<NaturalKey> naturalKeysOfDatabase = new LinkedHashSet<>();
-        DepartmentUtility departmentUtility = new DepartmentUtility();
+        DepartmentUtility departmentUtility = new DepartmentUtility(this.db);
         List<Department> departmentList = departmentUtility.getAllDepartments();
         for (Department department : departmentList) {
             naturalKeysOfDatabase.add(new NaturalKey(department.getDepCode(), department.getDepJob()));
@@ -111,55 +115,88 @@ public class Utility {
             Node node = depList.item(i);
             Element element = (Element) node;
             department = new Department(
-                    element.getElementsByTagName("DepCode").item(0).getTextContent(), element.getElementsByTagName("DepJob").item(0).getTextContent(), element.getElementsByTagName("Description").item(0).getTextContent());
+                element.getElementsByTagName("DepCode").item(0).getTextContent(),                     element.getElementsByTagName("DepJob").item(0).getTextContent(),                      element.getElementsByTagName("Description").item(0).getTextContent());
 
             hashMapDepartments.put(new NaturalKey(department.getDepCode(), department.getDepJob()), department);
 
             if (naturalKeysOfXML.contains(new NaturalKey(department.getDepCode(), department.getDepJob()))) {
-                System.out.println("Error! Two identical records in XML file!");
+                logger.error("Error! Two identical records in XML file!");
                 throw new Exception("Error! Two identical records in XML file!");
             } else {
                 naturalKeysOfXML.add(new NaturalKey(department.getDepCode(), department.getDepJob()));
             }
         }
 
-        //not presented in xml, delete from db
         HashSet<NaturalKey> notPresentedInXmlForDeleting = this.getKeysDiffNotPresentedInXml(naturalKeysOfDatabase, naturalKeysOfXML);
-        for (NaturalKey key : notPresentedInXmlForDeleting) {
-            departmentUtility.deleteDepartmentByNaturalKey(key);
-        }
-        System.out.println("Deleted " + notPresentedInXmlForDeleting.size() + " records not presented in xml file from db");
-
-        //not presented in db, add them from xml
         HashSet<NaturalKey> notPresInDbForAdding = this.getKeysDiffNotPresentedInDb(naturalKeysOfDatabase, naturalKeysOfXML);
-        for (NaturalKey naturalKey : notPresInDbForAdding) {
-            departmentUtility.addDepartment(hashMapDepartments.get(naturalKey));
-        }
-        System.out.println("Added " + notPresInDbForAdding.size() + " records not presented in db from xml file");
-
-        //if record with key in db, update it
         naturalKeysOfXML.addAll(naturalKeysOfDatabase);
         naturalKeysOfXML.removeAll(notPresInDbForAdding);
         naturalKeysOfXML.removeAll(notPresentedInXmlForDeleting);
-        for (NaturalKey key : naturalKeysOfXML){
-            departmentUtility.updateDepartment(key.getDepCode(), key.getDepJob(), hashMapDepartments.get(key).getDescription());
-        }
-        System.out.println("Updated " + naturalKeysOfXML.size() + " records in db from xml file");
 
-        departmentUtility.db.connection.close();
+        this.syncInOneTransaction(notPresInDbForAdding, naturalKeysOfXML, notPresentedInXmlForDeleting, hashMapDepartments);
+
+//        //update, if record from xml presented in db
+//        naturalKeysOfXML.addAll(naturalKeysOfDatabase);
+//        naturalKeysOfXML.removeAll(notPresInDbForAdding);
+//        naturalKeysOfXML.removeAll(notPresentedInXmlForDeleting);
+//        for (NaturalKey key : naturalKeysOfXML){
+//            departmentUtility.updateDepartment(key.getDepCode(), key.getDepJob(), hashMapDepartments.get(key).getDescription());
+//        }
+//        System.out.println("Updated " + naturalKeysOfXML.size() + " records in db from xml file");
     }
 
     //delete records not presented in xml file
-    protected HashSet<NaturalKey> getKeysDiffNotPresentedInXml(HashSet<NaturalKey> keysDb, HashSet<NaturalKey> keysXml) {
+    private HashSet<NaturalKey> getKeysDiffNotPresentedInXml(HashSet<NaturalKey> keysDb, HashSet<NaturalKey> keysXml) {
         HashSet<NaturalKey> keysNotPresentedInXml = new HashSet<>(keysDb);
         keysNotPresentedInXml.removeAll(keysXml);
         return keysNotPresentedInXml;
     }
 
     //add to db new records
-    protected HashSet<NaturalKey> getKeysDiffNotPresentedInDb(HashSet<NaturalKey> keysDb, HashSet<NaturalKey> keysXml) {
+    private HashSet<NaturalKey> getKeysDiffNotPresentedInDb(HashSet<NaturalKey> keysDb, HashSet<NaturalKey> keysXml) {
         HashSet<NaturalKey> keysNotPresentedInDb = new HashSet<>(keysXml);
         keysNotPresentedInDb.removeAll(keysDb);
         return keysNotPresentedInDb;
+    }
+
+    private void syncInOneTransaction(HashSet<NaturalKey> addKeys, HashSet<NaturalKey> updateKeys, HashSet<NaturalKey> deleteKeys, HashMap<NaturalKey, Department> departmentHashMap) throws SQLException, IOException, ClassNotFoundException {
+        this.db.setConnection();
+        this.db.connection.setAutoCommit(false);
+        DepartmentUtility departmentUtility = new DepartmentUtility(this.db);
+
+        PreparedStatement preparedStatementToDelete = null;
+        if (deleteKeys.size() != 0) {
+            preparedStatementToDelete = departmentUtility.deleteDepartmentByNaturalKeys(deleteKeys);
+        }
+
+        PreparedStatement preparedStatementToAdd = null;
+        List<Department> departmentListToAdd = new ArrayList<>();
+        for (NaturalKey addKey : addKeys){
+            departmentListToAdd.add(departmentHashMap.get(addKey));
+        }
+        if (addKeys.size() != 0){
+            preparedStatementToAdd = departmentUtility.addDepartmentList(departmentListToAdd);
+        }
+
+//        PreparedStatement departmentUtility.updateDepartment(updateKeys);
+        try {
+            if (deleteKeys.size() != 0) {
+                preparedStatementToDelete.execute();
+            }
+            if (addKeys.size() != 0) {
+                preparedStatementToAdd.execute();
+            }
+            this.db.connection.commit();
+            logger.debug("SYNC: Deleted departments from db not presented in XML file");
+            logger.debug("SYNC: Added new departments from XML file to db");
+            logger.debug("SYNC: Added new departments from XML file to db");
+            logger.debug("Synchronized XML file with database successfully");
+        } catch (Exception e){
+            this.db.connection.rollback();
+            logger.error("SYNC FAILED, ROLLBACK: Couldn't sync XML file with db");
+        } finally {
+            this.db.connection.close();
+            logger.debug("SYNC: Connection with db closed successfully");
+        }
     }
 }
