@@ -134,15 +134,6 @@ public class Utility {
         naturalKeysOfXML.removeAll(notPresentedInXmlForDeleting);
 
         this.syncInOneTransaction(notPresInDbForAdding, naturalKeysOfXML, notPresentedInXmlForDeleting, hashMapDepartments);
-
-//        //update, if record from xml presented in db
-//        naturalKeysOfXML.addAll(naturalKeysOfDatabase);
-//        naturalKeysOfXML.removeAll(notPresInDbForAdding);
-//        naturalKeysOfXML.removeAll(notPresentedInXmlForDeleting);
-//        for (NaturalKey key : naturalKeysOfXML){
-//            departmentUtility.updateDepartment(key.getDepCode(), key.getDepJob(), hashMapDepartments.get(key).getDescription());
-//        }
-//        System.out.println("Updated " + naturalKeysOfXML.size() + " records in db from xml file");
     }
 
     //delete records not presented in xml file
@@ -178,19 +169,33 @@ public class Utility {
             preparedStatementToAdd = departmentUtility.addDepartmentList(departmentListToAdd);
         }
 
-//        PreparedStatement departmentUtility.updateDepartment(updateKeys);
+        PreparedStatement preparedStatementToUpdate = null;
+        List<Department> depListToUpdate = new ArrayList<>();
+        for (NaturalKey updateKey : updateKeys){
+            depListToUpdate.add(departmentHashMap.get(updateKey));
+        }
+        if (updateKeys.size() != 0){
+            preparedStatementToUpdate = departmentUtility.updateDepartment(depListToUpdate);
+        }
+
         try {
             if (deleteKeys.size() != 0) {
+                assert preparedStatementToDelete != null;
                 preparedStatementToDelete.execute();
             }
             if (addKeys.size() != 0) {
+                assert preparedStatementToAdd != null;
                 preparedStatementToAdd.execute();
+            }
+            if (updateKeys.size() != 0){
+                assert preparedStatementToUpdate != null;
+                preparedStatementToUpdate.executeBatch();
             }
             this.db.connection.commit();
             logger.debug("SYNC: Deleted departments from db not presented in XML file");
             logger.debug("SYNC: Added new departments from XML file to db");
-            logger.debug("SYNC: Added new departments from XML file to db");
-            logger.debug("Synchronized XML file with database successfully");
+            logger.debug("SYNC: Updated records from XML file with db");
+            logger.debug("SYNC: Synchronized XML file with database successfully");
         } catch (Exception e){
             this.db.connection.rollback();
             logger.error("SYNC FAILED, ROLLBACK: Couldn't sync XML file with db");
