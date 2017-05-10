@@ -10,16 +10,37 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Created by davlet on 5/5/17.
+ * Represents data access methods for class Department
  */
-class DepartmentUtility implements Callable {
+class DepartmentUtility {
+    /**
+     * Logger variable
+     */
     private Logger logger = MyLogger.getInstance();
+
+    /**
+     * Database connection field
+     */
     protected DBConnection db = null;
 
+    /**
+     * Creates DepartmentUtility with specified database connection object
+     * @param dbConnection
+     * @throws SQLException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     DepartmentUtility(DBConnection dbConnection) throws SQLException, IOException, ClassNotFoundException {
         db = dbConnection;
     }
 
+    /**
+     * Gets list of all departments from db
+     * @return ArrayList<Department>
+     * @throws SQLException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public List<Department> getAllDepartments() throws SQLException, IOException, ClassNotFoundException {
         List<Department> departments = new ArrayList<Department>();
         Statement statement = db.connection.createStatement();
@@ -32,7 +53,7 @@ class DepartmentUtility implements Callable {
             String depCode = rs.getString("DepCode");
             String depJob = rs.getString("DepJob");
             String desc = rs.getString("Description");
-            Department department = new Department(id, depCode, depJob, desc);
+            Department department = new Department(depCode, depJob, desc);
             departments.add(department);
         }
         rs.close();
@@ -40,6 +61,11 @@ class DepartmentUtility implements Callable {
         return departments;
     }
 
+    /**
+     * Adds department to database by specifying department object
+     * @param newDep
+     * @throws SQLException
+     */
     public void addDepartment(Department newDep) throws SQLException {
         db.connection.setAutoCommit(false);
         String addQuery = "insert into dbtoxml.department " +
@@ -54,6 +80,15 @@ class DepartmentUtility implements Callable {
         logger.debug("Added new department with natural key "  + newDep.getDepCode() + " " + newDep.getDepJob());
     }
 
+    /**
+     * Adds department to database by specifying DepCode, DepJob, Description
+     * @param DepCode
+     * @param DepJob
+     * @param Description
+     * @throws SQLException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public void addDepartment(String DepCode, String DepJob, String Description) throws SQLException, IOException, ClassNotFoundException {
         //transaction start
         db.connection.setAutoCommit(false);
@@ -69,7 +104,14 @@ class DepartmentUtility implements Callable {
         logger.debug("Added new department with id");
     }
 
-    public boolean updateDepartment(String DepCode, String DepJob, String Description) throws SQLException {
+    /**
+     * Updates department records by specifying DepCode, DepJob, Description
+     * @param DepCode
+     * @param DepJob
+     * @param Description
+     * @throws SQLException
+     */
+    public void updateDepartment(String DepCode, String DepJob, String Description) throws SQLException   {
         db.connection.setAutoCommit(false);
         String updateQuery = "UPDATE dbtoxml.department SET DepCode = ?,"
                 + " DepJob = ?, Description = ? WHERE (DepCode, DepJob) IN ((?, ?))";
@@ -82,10 +124,14 @@ class DepartmentUtility implements Callable {
         preparedStatement.executeUpdate();
         db.connection.commit();
         logger.debug("Updated department with keys " + DepCode + " " + DepJob);
-        return true;
     }
 
-    public boolean deleteDepartment(int id) throws SQLException {
+    /**
+     * Deletes department from db by id
+     * @param id
+     * @throws SQLException
+     */
+    public void deleteDepartment(int id) throws SQLException {
         db.connection.setAutoCommit(false);
         String deleteQuery = "DELETE FROM dbtoxml.department " + "WHERE ID = ?";
         PreparedStatement preparedStatement = db.connection.prepareStatement(deleteQuery);
@@ -93,10 +139,14 @@ class DepartmentUtility implements Callable {
         preparedStatement.executeUpdate();
         db.connection.commit();
         logger.debug("Deleted department with id = " + id);
-        return true;
     }
 
-    public boolean deleteDepartmentByNaturalKey(NaturalKey key) throws SQLException {
+    /**
+     * Deletes department by Natural Key
+     * @param key
+     * @throws SQLException
+     */
+    public void deleteDepartmentByNaturalKey(NaturalKey key) throws SQLException {
         db.connection.setAutoCommit(false);
         String deleteQuery = "DELETE FROM dbtoxml.department WHERE (DepCode, DepJob) IN ((?,?))";
         PreparedStatement preparedStatement = db.connection.prepareStatement(deleteQuery);
@@ -105,9 +155,14 @@ class DepartmentUtility implements Callable {
         preparedStatement.executeUpdate();
         db.connection.commit();
         logger.debug("Deleted department with natural key = " + key.getDepCode() + " " + key.getDepJob());
-        return true;
     }
 
+    /**
+     * Creates delete statement by HashSet of Natural keys
+     * @param keysForDeletion
+     * @return PreparedStatement
+     * @throws SQLException
+     */
     public PreparedStatement deleteDepartmentByNaturalKeys(HashSet<NaturalKey> keysForDeletion) throws SQLException {
         StringBuilder keysToDeleteParams = new StringBuilder();
         for (NaturalKey naturalKey : keysForDeletion){
@@ -125,6 +180,12 @@ class DepartmentUtility implements Callable {
         return preparedStatement;
     }
 
+    /**
+     * Creates add statement by List of Department objects
+     * @param depList
+     * @return PreparedStatement
+     * @throws SQLException
+     */
     public PreparedStatement addDepartmentList(List<Department> depList) throws SQLException {
         StringBuilder keysToAddParam = new StringBuilder();
         for (int i = 0; i < depList.size(); i++){
@@ -144,6 +205,12 @@ class DepartmentUtility implements Callable {
         return preparedStatement;
     }
 
+    /**
+     * Creates update statement by List of Department objects
+     * @param departmentList
+     * @return PreparedStatement
+     * @throws SQLException
+     */
     public PreparedStatement updateDepartment(List<Department> departmentList) throws SQLException {
         String updateQuery = "UPDATE dbtoxml.department SET DepCode = ?,"
                 + " DepJob = ?, Description = ? WHERE (DepCode, DepJob) IN ((?,?))";
