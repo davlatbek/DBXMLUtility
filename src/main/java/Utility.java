@@ -16,12 +16,18 @@ import java.sql.SQLException;
 import java.util.*;
 
 /**
- * Created by davlet on 5/4/17.
+ * Utility class for extracting db to xml and syncing xml file to database table
  */
 public class Utility {
     private DBConnection db = null;
     private Logger logger = Logger.getLogger("FileLogger");
 
+    /**
+     * Creates Utility object and sets connection
+     * @throws SQLException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public Utility() throws SQLException, IOException, ClassNotFoundException {
         db = DBConnection.getInstance();
         db.setConnection();
@@ -48,6 +54,15 @@ public class Utility {
 
     }
 
+    /**
+     * Extracts database table to specified file
+     * @param toFile
+     * @throws IOException
+     * @throws XMLStreamException
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     * @throws TransformerException
+     */
     private void extract_to_xml(String toFile) throws IOException, XMLStreamException, SQLException, ClassNotFoundException, TransformerException {
         DepartmentUtility departmentUtility = new DepartmentUtility(this.db);
         List<Department> departmentList = departmentUtility.getAllDepartments();
@@ -90,6 +105,11 @@ public class Utility {
         logger.debug("Extracted database table 'department' to XML file '" + toFile + "' successfully");
     }
 
+    /**
+     * Synchronizes xml file xmlFile's content with database table
+     * @param xmlFile
+     * @throws Exception
+     */
     private void synchronize_xml_with_dbtable(String xmlFile) throws Exception {
         File inputXML = new File(xmlFile);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -136,20 +156,40 @@ public class Utility {
         this.syncInOneTransaction(notPresInDbForAdding, naturalKeysOfXML, notPresentedInXmlForDeleting, hashMapDepartments);
     }
 
-    //delete records not presented in xml file
+    /**
+     * Deletes keys of records not presented in xml file
+     * @param keysDb
+     * @param keysXml
+     * @return
+     */
     private HashSet<NaturalKey> getKeysDiffNotPresentedInXml(HashSet<NaturalKey> keysDb, HashSet<NaturalKey> keysXml) {
         HashSet<NaturalKey> keysNotPresentedInXml = new HashSet<>(keysDb);
         keysNotPresentedInXml.removeAll(keysXml);
         return keysNotPresentedInXml;
     }
 
-    //add to db new records
+    /**
+     * Gets keys not presented in database table, but present in xml file
+     * @param keysDb
+     * @param keysXml
+     * @return
+     */
     private HashSet<NaturalKey> getKeysDiffNotPresentedInDb(HashSet<NaturalKey> keysDb, HashSet<NaturalKey> keysXml) {
         HashSet<NaturalKey> keysNotPresentedInDb = new HashSet<>(keysXml);
         keysNotPresentedInDb.removeAll(keysDb);
         return keysNotPresentedInDb;
     }
 
+    /**
+     * Synchronize all records from xml file in one transaction
+     * @param addKeys
+     * @param updateKeys
+     * @param deleteKeys
+     * @param departmentHashMap
+     * @throws SQLException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     private void syncInOneTransaction(HashSet<NaturalKey> addKeys, HashSet<NaturalKey> updateKeys, HashSet<NaturalKey> deleteKeys, HashMap<NaturalKey, Department> departmentHashMap) throws SQLException, IOException, ClassNotFoundException {
         this.db.setConnection();
         this.db.connection.setAutoCommit(false);
