@@ -62,6 +62,7 @@ class DepartmentUtility {
         }
         rs.close();
         statement.close();
+        logger.debug("Retrieved list of all records from table 'Departments'");
         return departments;
     }
 
@@ -181,6 +182,7 @@ class DepartmentUtility {
             preparedStatement.setString(index++, key.getDepCode());
             preparedStatement.setString(index++, key.getDepJob());
         }
+        logger.debug("Prepared statement for deleting records in table Departments");
         return preparedStatement;
     }
 
@@ -206,6 +208,7 @@ class DepartmentUtility {
             preparedStatement.setString(index++, dep.getDepJob());
             preparedStatement.setString(index++, dep.getDescription());
         }
+        logger.debug("Prepared statement for adding new records to table Departments");
         return preparedStatement;
     }
 
@@ -228,6 +231,7 @@ class DepartmentUtility {
             preparedStatement.setString(5, dep.getDepJob());
             preparedStatement.addBatch();
         }
+        logger.debug("Prepared statement for updating records in table Departments");
         return preparedStatement;
     }
 }
