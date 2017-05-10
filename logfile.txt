@@ -1,14 +1,10 @@
-2017-05-05 18:14:06,243 DEBUG [FileLogger] Finished writing database table to xml file
-2017-05-05 18:15:36,410 DEBUG [FileLogger] Finished writing database table to xml file
-2017-05-05 18:22:07,407 DEBUG [FileLogger] Finished writing database table to xml file
-2017-05-05 21:28:02,204 DEBUG [FileLogger] Finished writing database table to xml file
-2017-05-05 21:33:29,046 DEBUG [FileLogger] Finished writing database table to xml file
-2017-05-05 21:33:45,165 DEBUG [FileLogger] Finished writing database table to xml file
-2017-05-05 21:34:58,723 DEBUG [FileLogger] Finished writing database table to xml file
-2017-05-05 21:34:58,756 DEBUG [FileLogger] Added new department with id
-2017-05-05 21:36:35,672 DEBUG [FileLogger] Updated department with id = 1
-2017-05-05 21:36:35,689 DEBUG [FileLogger] Finished writing database table to xml file
-2017-05-05 21:38:46,796 DEBUG [FileLogger] Deleted department with id = 1
-2017-05-05 21:38:46,815 DEBUG [FileLogger] Finished writing database table to xml file
-2017-05-06 04:44:06,327 DEBUG [FileLogger] Finished writing database table to xml file
-2017-05-06 04:44:06,329 DEBUG [FileLogger] Extracted database table 'department' successfully to xml file generated_xml_from_table
+2017-05-09 04:33:31,770 DEBUG [FileLogger] SYNC: Deleted departments from db not presented in XML file
+2017-05-09 04:33:31,772 DEBUG [FileLogger] SYNC: Added new departments from XML file to db
+2017-05-09 04:33:31,772 DEBUG [FileLogger] SYNC: Updated records from XML file with db
+2017-05-09 04:33:31,772 DEBUG [FileLogger] SYNC: Synchronized XML file with database successfully
+2017-05-09 04:33:31,775 DEBUG [FileLogger] SYNC: Connection with db closed successfully
+2017-05-10 10:12:24,599 DEBUG [FileLogger] SYNC: Deleted departments from db not presented in XML file
+2017-05-10 10:12:24,603 DEBUG [FileLogger] SYNC: Added new departments from XML file to db
+2017-05-10 10:12:24,603 DEBUG [FileLogger] SYNC: Updated records from XML file with db
+2017-05-10 10:12:24,603 DEBUG [FileLogger] SYNC: Synchronized XML file with database successfully
+2017-05-10 10:12:24,609 DEBUG [FileLogger] SYNC: Connection with db closed successfully
