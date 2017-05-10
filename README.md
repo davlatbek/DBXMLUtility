@@ -1,6 +1,8 @@
 # DBXMLUtility
 Database utility for extracting database tables into XML and syncing XML data with database tables
 
+First download 'project' folder! Then:
+
 For macOS:
 
 1. Находясь в папке project, введите данную команду в командной строке mysql -uroot -p < dbtoxml.departmentBackup.sql для восстановления БД с таблицей Department
