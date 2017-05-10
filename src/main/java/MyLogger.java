@@ -8,6 +8,11 @@ import java.util.Properties;
 
 /**
  * This class represents customised Logger class
+ * <p>
+ *
+ * @author  davlet
+ * @version 1.0
+ * @since   5/5/17
  */
 public class MyLogger {
     /**

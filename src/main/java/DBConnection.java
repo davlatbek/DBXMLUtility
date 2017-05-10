@@ -7,7 +7,12 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * Created by davlet on 5/5/17.
+ * Class for connecting to database, using singleton pattern
+ * <p>
+ *
+ * @author  davlet
+ * @version 1.0
+ * @since   5/5/17
  */
 public class DBConnection {
     public static DBConnection db = null;
@@ -17,6 +22,10 @@ public class DBConnection {
 
     }
 
+    /**
+     * Gets instance of database connection, if not, creates new
+     * @return DBConnection
+     */
     public static synchronized DBConnection getInstance(){
         if (db == null){
             db = new DBConnection();
@@ -24,6 +33,12 @@ public class DBConnection {
         return db;
     }
 
+    /**
+     * Sets connection to database according to properties file settings
+     * @throws SQLException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     protected void setConnection() throws SQLException, IOException, ClassNotFoundException {
         Properties dbProperties = new Properties();
 //        InputStream in = new FileInputStream("../settings.properties");
@@ -38,6 +53,11 @@ public class DBConnection {
 
     }
 
+    /**
+     * Shows if connection to database is still opened
+     * @return <tt>true</tt> if connection is still valid
+     * @throws SQLException
+     */
     private boolean isConnected() throws SQLException {
         return !connection.isClosed();
     }

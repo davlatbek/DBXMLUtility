@@ -1,5 +1,10 @@
 /**
  * Class NaturalKey represents natural key (depcode, depjobe) in database
+ * <p>
+ *
+ * @author  davlet
+ * @version 1.0
+ * @since   5/5/17
  */
 public class NaturalKey {
     /**

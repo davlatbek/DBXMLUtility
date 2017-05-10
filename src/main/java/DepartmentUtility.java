@@ -11,6 +11,10 @@ import java.util.List;
 
 /**
  * Represents data access methods for class Department
+ * <p>
+ * @author  davlet
+ * @version 1.0
+ * @since   5/5/17
  */
 class DepartmentUtility {
     /**
