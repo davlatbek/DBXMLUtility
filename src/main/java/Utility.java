@@ -31,6 +31,7 @@ public class Utility {
     public Utility() throws SQLException, IOException, ClassNotFoundException {
         db = DBConnection.getInstance();
         db.setConnection();
+        logger.debug("Set connection with database");
     }
 
     public static void main(String[] args) throws Exception {
@@ -71,6 +72,8 @@ public class Utility {
         OutputStream outputStream = new FileOutputStream(new File(toFile + ".xml"));
         XMLStreamWriter out = XMLOutputFactory.newInstance().createXMLStreamWriter(
                 new OutputStreamWriter(outputStream, "utf-8"));
+
+        logger.debug("Started writing to specified XML file: " + toFile);
         out.writeStartDocument();
         out.writeCharacters("\n");
         out.writeStartElement("departments");
@@ -101,7 +104,7 @@ public class Utility {
         out.writeCharacters("\n");
         out.writeEndDocument();
         out.close();
-        logger.debug("Finished writing database table to xml file");
+        logger.debug("Finished writing database table to XML file " + toFile);
         logger.debug("Extracted database table 'department' to XML file '" + toFile + "' successfully");
     }
 
@@ -238,10 +241,10 @@ public class Utility {
             logger.debug("SYNC: Synchronized XML file with database successfully");
         } catch (Exception e){
             this.db.connection.rollback();
-            logger.error("SYNC FAILED, ROLLBACK: Couldn't sync XML file with db");
+            logger.error("SYNC FAILED, ROLLBACK: Couldn't sync XML file with database table");
         } finally {
             this.db.connection.close();
-            logger.debug("SYNC: Connection with db closed successfully");
+            logger.debug("SYNC: Connection with database closed successfully");
         }
     }
 }
